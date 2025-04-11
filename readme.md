@@ -13,14 +13,14 @@ If all things go well, this will produce an output similar to this:
 ```json
 {
   "mcpServers": {
-    "my-mcp": {
+    "doordash": {
       "command": "node",
       "args": [
         "<thePathToYour>/build/index.js"
       ],
       "env": [
         {
-          "ANY_ENV_KEY": "<REPLACE>"
+          "DOORDASH_API_KEY": "<REPLACE>"
         }
       ]
     }
