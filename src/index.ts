@@ -52,7 +52,7 @@ async function makeApiRequest(url: string, method: string, data?: any) {
     });
     return response.data;
   } catch (error) {
-    console.error("API request failed:", token);
+    console.error("API request failed:", error);
     throw error; // Re-throw the error for the tool to handle
   }
 }
