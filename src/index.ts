@@ -2,8 +2,11 @@ import { McpServer, ResourceTemplate } from "@modelcontextprotocol/sdk/server/mc
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import axios from 'axios';
+import jwt from "jsonwebtoken";
 
-const apiKey = process.env.DOORDASH_API_KEY;
+const developer_id = process.env.DOORDASH_DEVELOPER_ID;
+const key_id = process.env.DOORDASH_KEY_ID;
+const signing_secret = process.env.DOORDASH_SIGNING_SECRET;
 
 // Create an MCP server
 const server = new McpServer({
@@ -11,21 +14,45 @@ const server = new McpServer({
   version: "1.0.0"
 });
 
+const issuedAt = Math.floor(Date.now() / 1000);
+  const expirationDuration = 300;
+
+  const jwtData = {
+    aud: 'doordash',
+    iss: developer_id,
+    kid: key_id,
+    exp: issuedAt + expirationDuration,
+    iat: issuedAt,
+  }
+  
+  const token = jwt.sign(
+    jwtData,
+    Buffer.from(signing_secret, 'base64'),
+    {
+      algorithm: "HS256",
+      header: {
+        alg: "HS256",
+        'dd-ver': 'DD-JWT-V1'
+      }
+    } as unknown as jwt.SignOptions
+  );
+
 // Helper function to make API requests with authentication
 async function makeApiRequest(url: string, method: string, data?: any) {
+  const headers = {
+    Authorization: `Bearer ${token}`,
+    'Content-Type': 'application/json',
+  };
   try {
     const response = await axios({
       url: url,
       method: method,
       data: data,
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      }
+      headers
     });
     return response.data;
   } catch (error) {
-    console.error("API request failed:", error);
+    console.error("API request failed:", token);
     throw error; // Re-throw the error for the tool to handle
   }
 }
